@@ -16,7 +16,19 @@ MainWindow::MainWindow(QWidget *parent)
     QJsonObject textObject;
     textObject["scanrate"] = 200;                // Устанавливаем заголовок текста
     textObject["type"] = "LogicDriver";     // Устанавливаем содержание текста
+
+    QJsonArray mapArr;
+    mapArr.append(textObject);
+    textObject["mappings"] = mapArr;
+
+
     QJsonArray textsArray = m_currentJsonObject["drivers"].toArray(); // Забираем текущий массив текстов, даже если он не существует, он будет создан автоматически
+
+    QJsonArray arr1;
+    arr1.append(textObject);
+    arr1.append(textObject);
+    m_currentJsonObject["devices"] = arr1;
+
     textsArray.append(textObject);                                  // Добавляем объект текста в массив
     m_currentJsonObject["drivers"] = textsArray;                      // Сохраняем массив обратно в текущий объект
 
