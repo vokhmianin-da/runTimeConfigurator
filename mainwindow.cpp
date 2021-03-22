@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     QSqlQuery query;
     QString strQuery = "CREATE TABLE 'Драйверы' ("
                        "id INTEGER PRIMARY KEY NOT NULL,"
-            "'Имя драйвера' TEXT,"
+            "'Имя драйвера' TEXT UNIQUE,"
             "'Тип драйвера' TEXT);";
     query.exec(strQuery);
     tableDrivers = new QTableView;
@@ -90,37 +90,56 @@ bool MainWindow::createConnection()
 
 MainWindow::~MainWindow()
 {
-//    QFile dbFile("RunTime.db");
-//    db.removeDatabase(db.connectionName());
-//    dbFile.remove();    //удаление файла БД
+    /*Удаление файла БД*/
+    QFile dbFile("RunTime.db");
+    db.removeDatabase(db.connectionName());
+    dbFile.remove();
+    /////////////////////
     delete ui;
 }
 
 
 void MainWindow::on_pbAddDriver_clicked()   //создать драйвер
 {
-    ui->cbDrivers->addItem(ui->leDriverName->text());
+    QString driverName = ui->leDriverName->text();
 
     QSqlQuery query;
     QString strQuery;
 
+    /*Добавление нового драйвера в таблицу драйверов*/
     QString strF = "INSERT INTO 'Драйверы' (id, 'Имя драйвера', 'Тип драйвера')"
                    "VALUES('%1', '%2', '%3');";
-    strQuery = strF.arg(ui->cbDrivers->count()).arg(ui->leDriverName->text()).arg(ui->cbDriverTypes->currentData().String);
+    strQuery = strF.arg(ui->cbDrivers->count()).arg(driverName).arg(ui->cbDriverTypes->currentText());
     if (!query.exec(strQuery)){
-            qDebug() << "Не удалось вставить запись";
+            qDebug() << "Такой драйвер уже есть";
+            return;
         }
+    ui->cbDrivers->addItem(driverName); //добавление нового драйвера в checkBox
     modelDrivers->setQuery("SELECT * FROM 'Драйверы';");
 
+    /*Создание таблиц с контекстом драйверов*/
+    FormDriverTables *ptrNewDriver = new FormDriverTables;
+    drivers[driverName] = ptrNewDriver; //сохраняем указатель в общем списке
+    ui->tabWidget->addTab(ptrNewDriver, driverName);    //добавляем новую вкладку
+
+    QString temp;
     /*Создание контекста драйвера*/
-    strQuery =  driverParamsTemplates["LoggerDriver"].arg(ui->leDriverName->text());
+    temp = driverName + "ContextDriver";
+    strQuery =  driverParamsTemplates["LoggerDriver"].arg(temp);
     if (!query.exec(strQuery)){
             qDebug() << "Не удалось вставить запись";
         }
-    QSqlTableModel* ptrDriverContextModel = new QSqlTableModel;
-    DriversContest[ui->leDriverName->text()] = ptrDriverContextModel;   //добавление указателя на контекст драйвера в общий map
-    ptrDriverContextModel->setTable(ui->leDriverName->text());
-    QTableView* ptrDriverContextView = new QTableView;
-    ptrDriverContextView->setModel(ptrDriverContextModel);
-    layBases->addWidget(ptrDriverContextView);
+    ptrNewDriver->driverContext = new QSqlTableModel;
+    ptrNewDriver->driverContext->setTable(temp);
+    ptrNewDriver->getPtrDriverContext()->setModel(ptrNewDriver->driverContext);
+
+    /*Создание контекста тэгов для драйвера*/
+    temp = driverName + "ContextTag";
+    strQuery =  driverTagContextTemplates["LoggerDriver"].arg(temp);
+    if (!query.exec(strQuery)){
+            qDebug() << "Не удалось вставить запись";
+        }
+    ptrNewDriver->tagContext = new QSqlTableModel;
+    ptrNewDriver->tagContext->setTable(temp);
+    ptrNewDriver->getPtrTagContext()->setModel(ptrNewDriver->tagContext);
 }

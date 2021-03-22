@@ -52,7 +52,7 @@
               <widget class="QComboBox" name="cbDriverTypes">
                <item>
                 <property name="text">
-                 <string>LogerDriver</string>
+                 <string>LoggerDriver</string>
                 </property>
                </item>
               </widget>
@@ -132,7 +132,7 @@
       </widget>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
-        <string>Вид БД</string>
+        <string>Список драйверов</string>
        </attribute>
       </widget>
      </widget>

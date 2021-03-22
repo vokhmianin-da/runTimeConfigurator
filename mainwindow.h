@@ -12,6 +12,8 @@
 #include <QLayout>
 #include <QSqlTableModel>
 
+#include "formdrivertables.h"
+
 
 #include <QJsonObject>
 #include <QJsonArray>
@@ -40,8 +42,9 @@ private:
     QSqlDatabase db;    //модель списка драйверов
     QSqlQueryModel* modelDrivers;
     QTableView* tableDrivers;   //представление списка драйверов
-    QMap <QString, QSqlTableModel*> DriversContest; //хранит указатели на контекст драйвера для каждого созданного драйвера
-    QMap <QString, QSqlTableModel*> TagsDriverContest;  //хранит указатели на контекст тэга для каждого созданного драйвера
+    QMap <QString, FormDriverTables*> drivers;   //содержит указатели на все драйверы с их контекстами
+//    QMap <QString, QSqlTableModel*> DriversContest; //хранит указатели на контекст драйвера для каждого созданного драйвера
+//    QMap <QString, QSqlTableModel*> TagsDriverContest;  //хранит указатели на контекст тэга для каждого созданного драйвера
     QHBoxLayout *layBases;
 
     bool createConnection();    //создание БД
