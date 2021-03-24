@@ -10,6 +10,9 @@ FormDriverTables::FormDriverTables(QWidget *parent) :
     connect (ui->pbDrContextRevertAll, SIGNAL(clicked()), this, SLOT(DrContextRevertAll()));
     connect (ui->pbTagContextSubmitAll, SIGNAL(clicked()), this, SLOT(TagContextSubmitAll()));
     connect (ui->pbTagContextRevertAll, SIGNAL(clicked()), this, SLOT(TagContextRevertAll()));
+
+    connect (ui->pbAddTag, SIGNAL(clicked()), this, SLOT(addTag()));
+    connect (ui->pbRemoveTag, SIGNAL(clicked()), this, SLOT(removeTag()));
 }
 
 FormDriverTables::~FormDriverTables()
@@ -45,4 +48,19 @@ void FormDriverTables::TagContextSubmitAll()
 void FormDriverTables::TagContextRevertAll()
 {
     tagContext->revertAll();
+}
+
+void FormDriverTables::addTag()
+{
+    QItemSelectionModel *selectItem = ui->tvTagContext->selectionModel();
+    int lastRow = selectItem->currentIndex().row() + 1;
+    tagContext->insertRow(lastRow);
+}
+
+void FormDriverTables::removeTag()
+{
+    QItemSelectionModel *selectItem = ui->tvTagContext->selectionModel();
+    int currentRow = selectItem->currentIndex().row();
+    tagContext->removeRow(currentRow);
+    ui->tvTagContext->setRowHidden(currentRow, true);
 }

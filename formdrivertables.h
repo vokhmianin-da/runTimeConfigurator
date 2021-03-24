@@ -30,6 +30,10 @@ public slots:
     void DrContextRevertAll();
     void TagContextSubmitAll();
     void TagContextRevertAll();
+
+    /*Слоты добавления/удаления строк тэгов*/
+    void addTag();
+    void removeTag();
 };
 
 #endif // FORMDRIVERTABLES_H
