@@ -9,11 +9,11 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow),
       driverParamsTemplates
           {
-            {"LoggerDriver", "CREATE TABLE '%1' (id INTEGER PRIMARY KEY NOT NULL, directory TEXT, mode TEXT)"}
+            {"LoggerDriver", "CREATE TABLE '%1' (directory TEXT, mode TEXT)"}
           },
       driverTagContextTemplates
           {
-            {"LoggerDriver", "CREATE TABLE '%1' (id INTEGER PRIMARY KEY NOT NULL, accuracy TEXT, aperture TEXT, description TEXT, units TEXT)"}
+            {"LoggerDriver", "CREATE TABLE '%1' (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, accuracy TEXT, aperture TEXT, description TEXT, units TEXT)"}
           }
 {
     ui->setupUi(this);
@@ -118,7 +118,7 @@ void MainWindow::on_pbAddDriver_clicked()   //создать драйвер
     modelDrivers->setQuery("SELECT * FROM 'Драйверы';");
 
     /*Создание таблиц с контекстом драйверов*/
-    FormDriverTables *ptrNewDriver = new FormDriverTables;
+    FormDriverTables *ptrNewDriver = new FormDriverTables(this);
     drivers[driverName] = ptrNewDriver; //сохраняем указатель в общем списке
     ui->tabWidget->addTab(ptrNewDriver, driverName);    //добавляем новую вкладку
 
@@ -129,9 +129,16 @@ void MainWindow::on_pbAddDriver_clicked()   //создать драйвер
     if (!query.exec(strQuery)){
             qDebug() << "Не удалось вставить запись";
         }
-    ptrNewDriver->driverContext = new QSqlTableModel;
+
+    ptrNewDriver->driverContext = new QSqlTableModel(ptrNewDriver);
     ptrNewDriver->driverContext->setTable(temp);
     ptrNewDriver->getPtrDriverContext()->setModel(ptrNewDriver->driverContext);
+    ptrNewDriver->driverContext->setEditStrategy(QSqlTableModel::OnManualSubmit);   //запись изменений по вызову submitAll(), отмена - revertAll()
+
+    /*Мандование добавления новой строки*/
+    int lastRow = ptrNewDriver->driverContext->rowCount();
+    ptrNewDriver->driverContext->insertRow(lastRow);
+    //ptrNewDriver->driverContext->setData(ptrNewDriver->driverContext->index(lastRow,0),2);
 
     /*Создание контекста тэгов для драйвера*/
     temp = driverName + "ContextTag";
@@ -139,7 +146,7 @@ void MainWindow::on_pbAddDriver_clicked()   //создать драйвер
     if (!query.exec(strQuery)){
             qDebug() << "Не удалось вставить запись";
         }
-    ptrNewDriver->tagContext = new QSqlTableModel;
+    ptrNewDriver->tagContext = new QSqlTableModel(ptrNewDriver);
     ptrNewDriver->tagContext->setTable(temp);
     ptrNewDriver->getPtrTagContext()->setModel(ptrNewDriver->tagContext);
 }
