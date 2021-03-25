@@ -35,6 +35,8 @@ public:
 private slots:
     void on_pbAddDriver_clicked();
 
+    void on_pbDeleteDriver_clicked();
+
 private:
     Ui::MainWindow *ui;
     QMap <QString, QString> driverParamsTemplates;    //хранит пару "тип драйвера - параметры драйвера (sql - запрос создания таблицы)"

@@ -22,8 +22,8 @@ MainWindow::MainWindow(QWidget *parent)
     QSqlQuery query;
     QString strQuery = "CREATE TABLE 'Драйверы' ("
                        "id INTEGER PRIMARY KEY NOT NULL,"
-            "'Имя драйвера' TEXT UNIQUE,"
-            "'Тип драйвера' TEXT);";
+            "name TEXT UNIQUE,"
+            "type TEXT);";
     query.exec(strQuery);
     tableDrivers = new QTableView;
     modelDrivers = new QSqlQueryModel;
@@ -107,7 +107,7 @@ void MainWindow::on_pbAddDriver_clicked()   //создать драйвер
     QString strQuery;
 
     /*Добавление нового драйвера в таблицу драйверов*/
-    QString strF = "INSERT INTO 'Драйверы' (id, 'Имя драйвера', 'Тип драйвера')"
+    QString strF = "INSERT INTO 'Драйверы' (id, name, type)"
                    "VALUES('%1', '%2', '%3');";
     strQuery = strF.arg(ui->cbDrivers->count()).arg(driverName).arg(ui->cbDriverTypes->currentText());
     if (!query.exec(strQuery)){
@@ -148,5 +148,50 @@ void MainWindow::on_pbAddDriver_clicked()   //создать драйвер
         }
     ptrNewDriver->tagContext = new QSqlTableModel(ptrNewDriver);
     ptrNewDriver->tagContext->setTable(temp);
+    ptrNewDriver->tagContext->setEditStrategy(QSqlTableModel::OnFieldChange);   //запись изменений по нажатию ENTER в поле ввода ячейки или при смене строки
     ptrNewDriver->getPtrTagContext()->setModel(ptrNewDriver->tagContext);
+}
+
+void MainWindow::on_pbDeleteDriver_clicked()    //удалить драйвер
+{
+    QString driverName = ui->cbDrivers->currentText();
+
+    QSqlQuery query;
+    QString strQuery;
+
+    /*Удаление драйвера из таблицы драйверов*/
+    QString strF = "DELETE FROM 'Драйверы' WHERE "
+                   "name = '%1';";
+    strQuery = strF.arg(driverName);
+    if (!query.exec(strQuery)){
+            qDebug() << "Такого драйвера нет";
+            return;
+        }
+    ui->cbDrivers->removeItem(ui->cbDrivers->currentIndex()); //удаление драйвера из checkBox
+    modelDrivers->setQuery("SELECT * FROM 'Драйверы';");
+
+    QString temp;
+    /*Удаление контекста драйвера*/
+    temp = driverName + "ContextDriver";
+    strQuery =  "DROP TABLE " + temp + ";";
+    if (!query.exec(strQuery)){
+            qDebug() << "Не удалось вставить запись";
+        }
+    /*Удаление контекста тэгов*/
+    temp = driverName + "ContextTag";
+    strQuery =  "DROP TABLE " + temp + ";";
+    if (!query.exec(strQuery)){
+            qDebug() << "Не удалось вставить запись";
+        }
+
+    /*Удаление таблиц с контекстом драйверов*/
+    ui->tabWidget->removeTab(ui->tabWidget->indexOf(drivers[driverName]));    //удаляем вкладку
+
+    /*Очистка памяти*/
+    delete drivers[driverName]->driverContext;
+    delete drivers[driverName]->tagContext;
+    delete drivers[driverName];
+    ////////////////////////////////////////////
+
+    drivers.remove(driverName); //удаляем указатель из общего списка
 }
