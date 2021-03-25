@@ -88,6 +88,121 @@ bool MainWindow::createConnection()
     return true;
 }
 
+bool MainWindow::createDriver(QString driverName, QString driverType)
+{
+    QSqlQuery query;
+    QString strQuery;
+
+    QString strF = "INSERT INTO 'Драйверы' (id, name, type)"
+                   "VALUES('%1', '%2', '%3');";
+    strQuery = strF.arg(ui->cbDrivers->count()).arg(driverName).arg(driverType);
+    if (!query.exec(strQuery)){
+            qDebug() << "Такой драйвер уже есть";
+            return false;
+        }
+    ui->cbDrivers->addItem(driverName); //добавление нового драйвера в checkBox
+    modelDrivers->setQuery("SELECT * FROM 'Драйверы';");
+    return true;
+}
+
+bool MainWindow::removeDriver(QString driverName)
+{
+    if (driverName.isEmpty())
+    {
+        qDebug() << "Такого драйвера нет";
+        return false;
+    }
+
+    QSqlQuery query;
+    QString strQuery;
+
+    QString strF = "DELETE FROM 'Драйверы' WHERE "
+                   "name = '%1';";
+    strQuery = strF.arg(driverName);
+    if (!query.exec(strQuery)){
+            qDebug() << "Такого драйвера нет";
+            return false;
+        }
+    ui->cbDrivers->removeItem(ui->cbDrivers->currentIndex()); //удаление драйвера из checkBox
+    modelDrivers->setQuery("SELECT * FROM 'Драйверы';");
+    return true;
+}
+
+bool MainWindow::createDriverContext(QString driverName, QString driverType, FormDriverTables *ptrNewDriver) //Создание контекста драйвера
+{
+    QString temp;
+    QSqlQuery query;
+    QString strQuery;
+
+    temp = driverName + "ContextDriver";
+    strQuery =  driverParamsTemplates[driverType].arg(temp);
+    if (!query.exec(strQuery)){
+            qDebug() << "Не удалось создать таблицу " + temp;
+            return false;
+        }
+
+    ptrNewDriver->driverContext = new QSqlTableModel(ptrNewDriver);
+    ptrNewDriver->driverContext->setTable(temp);
+    ptrNewDriver->getPtrDriverContext()->setModel(ptrNewDriver->driverContext);
+    ptrNewDriver->driverContext->setEditStrategy(QSqlTableModel::OnManualSubmit);   //запись изменений по вызову submitAll(), отмена - revertAll()
+
+    /*Добавление новой (и единственной для драйвера) строки*/
+    int lastRow = ptrNewDriver->driverContext->rowCount();
+    ptrNewDriver->driverContext->insertRow(lastRow);
+    //ptrNewDriver->driverContext->setData(ptrNewDriver->driverContext->index(lastRow,0),2);
+    return true;
+}
+
+bool MainWindow::createTagContext(QString driverName, QString driverType, FormDriverTables *ptrNewDriver)  //Создание контекста тэгов для драйвера
+{
+    QString temp;
+    QSqlQuery query;
+    QString strQuery;
+
+    temp = driverName + "ContextTag";
+    strQuery =  driverTagContextTemplates[driverType].arg(temp);
+    if (!query.exec(strQuery)){
+            qDebug() << "Не удалось создать таблицу " + temp;
+            return false;
+        }
+    ptrNewDriver->tagContext = new QSqlTableModel(ptrNewDriver);
+    ptrNewDriver->tagContext->setTable(temp);
+    ptrNewDriver->tagContext->setEditStrategy(QSqlTableModel::OnFieldChange);   //запись изменений по нажатию ENTER в поле ввода ячейки или при смене строки
+    ptrNewDriver->getPtrTagContext()->setModel(ptrNewDriver->tagContext);
+    return true;
+}
+
+bool MainWindow::removeDriverContext(QString driverName)
+{
+    QSqlQuery query;
+    QString strQuery;
+    QString temp;
+
+    /*Удаление контекста драйвера*/
+    temp = driverName + "ContextDriver";
+    strQuery =  "DROP TABLE '" + temp + "';";
+    if (!query.exec(strQuery)){
+            qDebug() << "Не удалось удалить таблицу " + temp;
+            return false;
+        }
+    return true;
+}
+
+bool MainWindow::removeTagContext(QString driverName)
+{
+    QSqlQuery query;
+    QString strQuery;
+    QString temp;
+
+    temp = driverName + "ContextTag";
+    strQuery =  "DROP TABLE '" + temp + "';";
+    if (!query.exec(strQuery)){
+            qDebug() << "Не удалось удалить таблицу " + temp;
+            return false;
+        }
+    return true;
+}
+
 MainWindow::~MainWindow()
 {
     /*Удаление файла БД*/
@@ -102,87 +217,35 @@ MainWindow::~MainWindow()
 void MainWindow::on_pbAddDriver_clicked()   //создать драйвер
 {
     QString driverName = ui->leDriverName->text();
-
-    QSqlQuery query;
-    QString strQuery;
+    QString driverType = ui->cbDriverTypes->currentText();
 
     /*Добавление нового драйвера в таблицу драйверов*/
-    QString strF = "INSERT INTO 'Драйверы' (id, name, type)"
-                   "VALUES('%1', '%2', '%3');";
-    strQuery = strF.arg(ui->cbDrivers->count()).arg(driverName).arg(ui->cbDriverTypes->currentText());
-    if (!query.exec(strQuery)){
-            qDebug() << "Такой драйвер уже есть";
-            return;
-        }
-    ui->cbDrivers->addItem(driverName); //добавление нового драйвера в checkBox
-    modelDrivers->setQuery("SELECT * FROM 'Драйверы';");
+    if (!createDriver(driverName, driverType)) return;
 
     /*Создание таблиц с контекстом драйверов*/
     FormDriverTables *ptrNewDriver = new FormDriverTables(this);
     drivers[driverName] = ptrNewDriver; //сохраняем указатель в общем списке
     ui->tabWidget->addTab(ptrNewDriver, driverName);    //добавляем новую вкладку
 
-    QString temp;
     /*Создание контекста драйвера*/
-    temp = driverName + "ContextDriver";
-    strQuery =  driverParamsTemplates["LoggerDriver"].arg(temp);
-    if (!query.exec(strQuery)){
-            qDebug() << "Не удалось вставить запись";
-        }
+    if(!createDriverContext(driverName, driverType, ptrNewDriver)) return;
 
-    ptrNewDriver->driverContext = new QSqlTableModel(ptrNewDriver);
-    ptrNewDriver->driverContext->setTable(temp);
-    ptrNewDriver->getPtrDriverContext()->setModel(ptrNewDriver->driverContext);
-    ptrNewDriver->driverContext->setEditStrategy(QSqlTableModel::OnManualSubmit);   //запись изменений по вызову submitAll(), отмена - revertAll()
-
-    /*Мандование добавления новой строки*/
-    int lastRow = ptrNewDriver->driverContext->rowCount();
-    ptrNewDriver->driverContext->insertRow(lastRow);
-    //ptrNewDriver->driverContext->setData(ptrNewDriver->driverContext->index(lastRow,0),2);
-
-    /*Создание контекста тэгов для драйвера*/
-    temp = driverName + "ContextTag";
-    strQuery =  driverTagContextTemplates["LoggerDriver"].arg(temp);
-    if (!query.exec(strQuery)){
-            qDebug() << "Не удалось вставить запись";
-        }
-    ptrNewDriver->tagContext = new QSqlTableModel(ptrNewDriver);
-    ptrNewDriver->tagContext->setTable(temp);
-    ptrNewDriver->tagContext->setEditStrategy(QSqlTableModel::OnFieldChange);   //запись изменений по нажатию ENTER в поле ввода ячейки или при смене строки
-    ptrNewDriver->getPtrTagContext()->setModel(ptrNewDriver->tagContext);
+    /*Создание контекста тэгов*/
+    if (!createTagContext(driverName, driverType, ptrNewDriver)) return;
 }
 
 void MainWindow::on_pbDeleteDriver_clicked()    //удалить драйвер
 {
     QString driverName = ui->cbDrivers->currentText();
 
-    QSqlQuery query;
-    QString strQuery;
-
     /*Удаление драйвера из таблицы драйверов*/
-    QString strF = "DELETE FROM 'Драйверы' WHERE "
-                   "name = '%1';";
-    strQuery = strF.arg(driverName);
-    if (!query.exec(strQuery)){
-            qDebug() << "Такого драйвера нет";
-            return;
-        }
-    ui->cbDrivers->removeItem(ui->cbDrivers->currentIndex()); //удаление драйвера из checkBox
-    modelDrivers->setQuery("SELECT * FROM 'Драйверы';");
+    if(!removeDriver(driverName)) return;
 
-    QString temp;
     /*Удаление контекста драйвера*/
-    temp = driverName + "ContextDriver";
-    strQuery =  "DROP TABLE " + temp + ";";
-    if (!query.exec(strQuery)){
-            qDebug() << "Не удалось вставить запись";
-        }
+    if(!removeDriverContext(driverName)) return;
+
     /*Удаление контекста тэгов*/
-    temp = driverName + "ContextTag";
-    strQuery =  "DROP TABLE " + temp + ";";
-    if (!query.exec(strQuery)){
-            qDebug() << "Не удалось вставить запись";
-        }
+    if (!removeTagContext(driverName)) return;
 
     /*Удаление таблиц с контекстом драйверов*/
     ui->tabWidget->removeTab(ui->tabWidget->indexOf(drivers[driverName]));    //удаляем вкладку

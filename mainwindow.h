@@ -50,6 +50,12 @@ private:
     QHBoxLayout *layBases;
 
     bool createConnection();    //создание БД
+    bool createDriver(QString driverName, QString driverType);  //создание драйвера и добавление его в таблицу
+    bool removeDriver(QString driverName);  //удаление драйвера (из checkBox и из таблицы
+    bool createDriverContext(QString driverName, QString driverTemplate, FormDriverTables *ptrNewDriver);   //создание вкладки и таблицы "Контекст драйвера"
+    bool createTagContext(QString driverName, QString tagTemplate, FormDriverTables *ptrNewDriver);   //создание вкладки и таблицы "Контекст драйвера"
+    bool removeDriverContext(QString driverName);   //удаление вкладки и таблицы "Контекст драйвера"
+    bool removeTagContext(QString driverName);   //удаление вкладки и таблицы "Контекст драйвера"
     // Текущий json объект, с которым производится работа
         QJsonObject m_currentJsonObject;
 };
