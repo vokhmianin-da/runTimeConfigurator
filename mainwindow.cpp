@@ -13,12 +13,13 @@ MainWindow::MainWindow(QWidget *parent)
           },
       driverTagContextTemplates
           {
-            {"LoggerDriver", "CREATE TABLE '%1' (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, accuracy TEXT, aperture TEXT, description TEXT, units TEXT)"}
+            {"LoggerDriver", "CREATE TABLE '%1' (tagName TEXT PRIMARY KEY NOT NULL, accuracy TEXT, aperture TEXT, description TEXT, units TEXT)"}
           }
 {
     ui->setupUi(this);
 
     if(!createConnection()) return; //создание БД
+
     QSqlQuery query;
     QString strQuery = "CREATE TABLE 'Драйверы' ("
                        "id INTEGER PRIMARY KEY NOT NULL,"
@@ -167,7 +168,7 @@ bool MainWindow::createTagContext(QString driverName, QString driverType, FormDr
         }
     ptrNewDriver->tagContext = new QSqlTableModel(ptrNewDriver);
     ptrNewDriver->tagContext->setTable(temp);
-    ptrNewDriver->tagContext->setEditStrategy(QSqlTableModel::OnManualSubmit);   //запись изменений по нажатию ENTER в поле ввода ячейки или при смене строки
+    ptrNewDriver->tagContext->setEditStrategy(QSqlTableModel::OnManualSubmit);   //запись изменений по вызову submitAll(), отмена - revertAll()
     ptrNewDriver->getPtrTagContext()->setModel(ptrNewDriver->tagContext);
     return true;
 }

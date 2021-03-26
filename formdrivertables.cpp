@@ -77,6 +77,7 @@ void FormDriverTables::removeTag()
     {
          tagContext->removeRow(it.row());   //удаление каждой из выделенных строк
     }
+    emit ui->pbTagContextSubmitAll->clicked();  //удаление строк из БД не требует подтверждения кнопкой
     //tagContext->removeRow(currentRow);
     //ui->tvTagContext->setRowHidden(currentRow, true);
 }

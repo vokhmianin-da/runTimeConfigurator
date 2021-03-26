@@ -41,13 +41,14 @@ private:
     Ui::MainWindow *ui;
     QMap <QString, QString> driverParamsTemplates;    //хранит пару "тип драйвера - параметры драйвера (sql - запрос создания таблицы)"
     QMap <QString, QString> driverTagContextTemplates;    //хранит пару "тип драйвера - контекст тэга драйвера (sql - запрос создания таблицы)"
+
     QSqlDatabase db;    //модель списка драйверов
     QSqlQueryModel* modelDrivers;
     QTableView* tableDrivers;   //представление списка драйверов
     QMap <QString, FormDriverTables*> drivers;   //содержит указатели на все драйверы с их контекстами
-//    QMap <QString, QSqlTableModel*> DriversContest; //хранит указатели на контекст драйвера для каждого созданного драйвера
-//    QMap <QString, QSqlTableModel*> TagsDriverContest;  //хранит указатели на контекст тэга для каждого созданного драйвера
     QHBoxLayout *layBases;
+
+    QSqlTableModel* tagsList;  //указатель на таблицу тэгов с основными параметрами
 
     bool createConnection();    //создание БД
     bool createDriver(QString driverName, QString driverType);  //создание драйвера и добавление его в таблицу
