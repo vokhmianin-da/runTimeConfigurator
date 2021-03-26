@@ -70,7 +70,13 @@ void FormDriverTables::addTag()
 void FormDriverTables::removeTag()
 {
     QItemSelectionModel *selectItem = ui->tvTagContext->selectionModel();
-    int currentRow = selectItem->currentIndex().row();
-    tagContext->removeRow(currentRow);
-    ui->tvTagContext->setRowHidden(currentRow, true);
+    //int currentRow = selectItem->currentIndex().row();
+
+    QModelIndexList currentItems = selectItem->selectedIndexes();   //все выделенные строки
+    for (auto it: currentItems)
+    {
+         tagContext->removeRow(it.row());   //удаление каждой из выделенных строк
+    }
+    //tagContext->removeRow(currentRow);
+    //ui->tvTagContext->setRowHidden(currentRow, true);
 }
