@@ -167,7 +167,7 @@ bool MainWindow::createTagContext(QString driverName, QString driverType, FormDr
         }
     ptrNewDriver->tagContext = new QSqlTableModel(ptrNewDriver);
     ptrNewDriver->tagContext->setTable(temp);
-    ptrNewDriver->tagContext->setEditStrategy(QSqlTableModel::OnFieldChange);   //запись изменений по нажатию ENTER в поле ввода ячейки или при смене строки
+    ptrNewDriver->tagContext->setEditStrategy(QSqlTableModel::OnManualSubmit);   //запись изменений по нажатию ENTER в поле ввода ячейки или при смене строки
     ptrNewDriver->getPtrTagContext()->setModel(ptrNewDriver->tagContext);
     return true;
 }
