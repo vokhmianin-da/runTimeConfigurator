@@ -53,15 +53,17 @@ void FormDriverTables::TagContextRevertAll()
 void FormDriverTables::addTag()
 {
     QItemSelectionModel *selectItem = ui->tvTagContext->selectionModel();
+    int countTags = ui->spBcountTags->value();
+
     if(selectItem->currentIndex().isValid())    //вставка после выделенной строки
     {
         int lastRow = selectItem->currentIndex().row() + 1;
-        tagContext->insertRow(lastRow);
+        tagContext->insertRows(lastRow, countTags);
         //tagContext->setData(this->tagContext->index(lastRow,0), tagContext->data(this->tagContext->index(lastRow - 1,0)).toInt() + 1);
     }
     else    //вставка по умолчанию
     {
-        tagContext->insertRow(tagContext->rowCount());
+        tagContext->insertRows(tagContext->rowCount(), countTags);
     }
 }
 
