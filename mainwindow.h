@@ -37,6 +37,16 @@ private slots:
 
     void on_pbDeleteDriver_clicked();
 
+    void on_pbCreateJson_clicked();
+
+    void on_pbAddTag_clicked();
+
+    void on_pbRemoveTag_clicked();
+
+    void on_pbTagListSubmitAll_clicked();
+
+    void on_pbTagListRevertAll_clicked();
+
 private:
     Ui::MainWindow *ui;
     QMap <QString, QString> driverParamsTemplates;    //хранит пару "тип драйвера - параметры драйвера (sql - запрос создания таблицы)"

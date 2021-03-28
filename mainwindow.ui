@@ -218,14 +218,14 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_8">
             <item>
-             <widget class="QPushButton" name="pbTagContextSubmitAll">
+             <widget class="QPushButton" name="pbTagListSubmitAll">
               <property name="text">
                <string>Записать изменения</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pbTagContextRevertAll">
+             <widget class="QPushButton" name="pbTagListRevertAll">
               <property name="text">
                <string>Отменить изменения</string>
               </property>
