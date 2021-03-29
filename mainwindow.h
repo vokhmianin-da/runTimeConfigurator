@@ -18,6 +18,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QFile>
+#include <QFileDialog>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -67,7 +69,8 @@ private:
     bool createTagContext(QString driverName, QString tagTemplate, FormDriverTables *ptrNewDriver);   //создание вкладки и таблицы "Контекст драйвера"
     bool removeDriverContext(QString driverName);   //удаление вкладки и таблицы "Контекст драйвера"
     bool removeTagContext(QString driverName);   //удаление вкладки и таблицы "Контекст драйвера"
+
     // Текущий json объект, с которым производится работа
-        QJsonObject m_currentJsonObject;
+    QJsonObject m_currentJsonObject;    //основной json - объект
 };
 #endif // MAINWINDOW_H

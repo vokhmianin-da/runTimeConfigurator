@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
-#include <QFileDialog>
+#include <QSqlRecord>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -9,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow),
       driverParamsTemplates
           {
-            {"LoggerDriver", "CREATE TABLE '%1' (directory TEXT, mode TEXT)"}
+            {"LoggerDriver", "CREATE TABLE '%1' (scanRate INTEGER, queueDepth INTEGER, stackDepth INTEGER, directory TEXT, mode TEXT)"}
           },
       driverTagContextTemplates
           {
@@ -237,11 +236,48 @@ void MainWindow::on_pbDeleteDriver_clicked()    //удалить драйвер
     drivers.remove(driverName); //удаляем указатель из общего списка
 }
 
-void MainWindow::on_pbCreateJson_clicked()
+void MainWindow::on_pbCreateJson_clicked()  //создание json-файла
 {
+    /*Параметры core (но они реально не используются, поэтому фиксированное значение*/
+    QJsonObject coreParam;
+    coreParam["queueDepth"] = 100;
+    m_currentJsonObject["core"] = coreParam;
+
+    /*Массив драйверов*/
+    QJsonArray driversArray;
+    for (int i = 0; i < ui->cbDrivers->count(); i++)
+    {
+        QJsonObject currentDriver;
+        QSqlQuery query;
+        QString strQuery;
+
+        /*Имя драйвера*/
+        currentDriver["name"] = ui->cbDrivers->itemText(i);
+
+        /*Класс драйвера*/
+        QString strF = "SELECT type FROM 'Драйверы' WHERE name='%1';";
+        strQuery = strF.arg(ui->cbDrivers->itemText(i));
+        if (!query.exec(strQuery)) {
+                qDebug() << "Не удалось найти драйвер";
+                return;
+            }
+        QSqlRecord rec = query.record();
+        query.next();   //НЕ ЗАБЫВАТЬ!!!
+        currentDriver["type"] = query.value(rec.indexOf("type")).toString();
+
+        /*scanRate драйвера*/
+        QSqlRecord currentItems = drivers[ui->cbDrivers->itemText(i)]->driverContext->record(0);    //делаем QSqlRecord для контекста текущего драйвера
+        for (int i = 0; i < currentItems.count(); i++)
+        {
+           currentDriver[currentItems.fieldName(i)] = currentItems.value(i).toString();
+        }
+
+        driversArray.append(currentDriver);
+    }
+    m_currentJsonObject["drivers"] = driversArray;
     /*Тест создания json-файла*/
-//    //ССылочка на работу с QJson - https://evileg.com/ru/post/419/
-//    // Создаём объект текста
+    //ССылочка на работу с QJson - https://evileg.com/ru/post/419/
+    // Создаём объект текста
 //    QJsonObject textObject;
 //    textObject["scanrate"] = 200;                // Устанавливаем заголовок текста
 //    textObject["type"] = "LogicDriver";     // Устанавливаем содержание текста
@@ -262,22 +298,22 @@ void MainWindow::on_pbCreateJson_clicked()
 //    m_currentJsonObject["drivers"] = textsArray;                      // Сохраняем массив обратно в текущий объект
 
 
-//    QString saveFileName = QFileDialog::getSaveFileName(this,
-//                                                        tr("Save Json File"),
-//                                                        QString(),
-//                                                        tr("JSON (*.json)"));
-//    QFileInfo fileInfo(saveFileName);   // С помощью QFileInfo
-//    QDir::setCurrent(fileInfo.path());  // установим текущую рабочую директорию, где будет файл, иначе может не заработать
-//    // Создаём объект файла и открываем его на запись
-//    QFile jsonFile(saveFileName);
-//    if (!jsonFile.open(QIODevice::WriteOnly))
-//    {
-//        return;
-//    }
+    QString saveFileName = QFileDialog::getSaveFileName(this,
+                                                        tr("Save Json File"),
+                                                        QString(),
+                                                        tr("JSON (*.json)"));
+    QFileInfo fileInfo(saveFileName);   // С помощью QFileInfo
+    QDir::setCurrent(fileInfo.path());  // установим текущую рабочую директорию, где будет файл, иначе может не заработать
+    // Создаём объект файла и открываем его на запись
+    QFile jsonFile(saveFileName);
+    if (!jsonFile.open(QIODevice::WriteOnly))
+    {
+        return;
+    }
 
-//    // Записываем текущий объект Json в файл
-//    jsonFile.write(QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented));
-//    jsonFile.close();   // Закрываем файл
+    // Записываем текущий объект Json в файл
+    jsonFile.write(QJsonDocument(m_currentJsonObject).toJson(QJsonDocument::Indented));
+    jsonFile.close();   // Закрываем файл
 }
 
 void MainWindow::on_pbAddTag_clicked()  //добавление строк в таблицу тэгов
