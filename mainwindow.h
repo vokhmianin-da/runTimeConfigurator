@@ -20,6 +20,8 @@
 #include <QJsonDocument>
 #include <QFile>
 #include <QFileDialog>
+#include <QSqlRecord>
+#include <QComboBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -33,6 +35,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    QMap <QString, FormDriverTables*> getDrivers() {return drivers;}
+
 
 private slots:
     void on_pbAddDriver_clicked();
@@ -72,5 +76,11 @@ private:
 
     // Текущий json объект, с которым производится работа
     QJsonObject m_currentJsonObject;    //основной json - объект
+
+    /*Функции для создание QJsonObject из контекстов драйвера и тэга*/
+    QMap <QString, QJsonObject (*)(MainWindow* ptr, QString driverName)> createJsonDriverContext;    //пара "тип драйвера" - ф-ция создания контекста драйвера для json-а. numberInCB - номер драйвера в ComboBox
+
+    static QJsonObject createJsonLoggerDriverContext(MainWindow* ptr, QString driverName);
+
 };
 #endif // MAINWINDOW_H

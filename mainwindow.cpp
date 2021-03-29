@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QSqlRecord>
+
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -13,6 +13,10 @@ MainWindow::MainWindow(QWidget *parent)
       driverTagContextTemplates
           {
             {"LoggerDriver", "CREATE TABLE '%1' (tagName TEXT PRIMARY KEY NOT NULL, accuracy TEXT, aperture TEXT, description TEXT, units TEXT)"}
+          },
+      createJsonDriverContext
+          {
+            {"LoggerDriver", createJsonLoggerDriverContext}
           }
 {
     ui->setupUi(this);
@@ -247,32 +251,33 @@ void MainWindow::on_pbCreateJson_clicked()  //создание json-файла
     QJsonArray driversArray;
     for (int i = 0; i < ui->cbDrivers->count(); i++)
     {
-        QJsonObject currentDriver;
-        QSqlQuery query;
-        QString strQuery;
+//        QJsonObject currentDriver;
+//        QSqlQuery query;
+//        QString strQuery;
 
-        /*Имя драйвера*/
-        currentDriver["name"] = ui->cbDrivers->itemText(i);
+//        /*Имя драйвера*/
+//        currentDriver["name"] = ui->cbDrivers->itemText(i);
 
-        /*Класс драйвера*/
-        QString strF = "SELECT type FROM 'Драйверы' WHERE name='%1';";
-        strQuery = strF.arg(ui->cbDrivers->itemText(i));
-        if (!query.exec(strQuery)) {
-                qDebug() << "Не удалось найти драйвер";
-                return;
-            }
-        QSqlRecord rec = query.record();
-        query.next();   //НЕ ЗАБЫВАТЬ!!!
-        currentDriver["type"] = query.value(rec.indexOf("type")).toString();
+//        /*Класс драйвера*/
+//        QString strF = "SELECT type FROM 'Драйверы' WHERE name='%1';";
+//        strQuery = strF.arg(ui->cbDrivers->itemText(i));
+//        if (!query.exec(strQuery)) {
+//                qDebug() << "Не удалось найти драйвер";
+//                return;
+//            }
+//        QSqlRecord rec = query.record();
+//        query.next();   //НЕ ЗАБЫВАТЬ!!!
+//        QString typeCurrentDriver = query.value(rec.indexOf("type")).toString();
+//        currentDriver["type"] = typeCurrentDriver;
 
-        /*scanRate драйвера*/
-        QSqlRecord currentItems = drivers[ui->cbDrivers->itemText(i)]->driverContext->record(0);    //делаем QSqlRecord для контекста текущего драйвера
-        for (int i = 0; i < currentItems.count(); i++)
-        {
-           currentDriver[currentItems.fieldName(i)] = currentItems.value(i).toString();
-        }
+//        /*scanRate драйвера*/
+//        QSqlRecord currentItems = drivers[ui->cbDrivers->itemText(i)]->driverContext->record(0);    //делаем QSqlRecord для контекста текущего драйвера
+//        for (int i = 0; i < currentItems.count(); i++)
+//        {
+//           currentDriver[currentItems.fieldName(i)] = currentItems.value(i).toString();
+//        }
 
-        driversArray.append(currentDriver);
+        driversArray.append(createJsonDriverContext["LoggerDriver"](this, ui->cbDrivers->itemText(i)));
     }
     m_currentJsonObject["drivers"] = driversArray;
     /*Тест создания json-файла*/

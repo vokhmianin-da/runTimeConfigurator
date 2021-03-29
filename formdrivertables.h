@@ -9,6 +9,13 @@ namespace Ui {
 class FormDriverTables;
 }
 
+enum typesParams    //Типы данных для контекстов
+{
+    dtString,
+    dtInt,
+    dtFloat
+};
+
 class FormDriverTables : public QWidget
 {
     Q_OBJECT
