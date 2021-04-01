@@ -60,7 +60,8 @@ MainWindow::MainWindow(QWidget *parent)
 bool MainWindow::createConnection()
 {
     db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("RunTime.db");
+    //db.setDatabaseName("RunTime.db");
+    db.setDatabaseName(":memory:"); //имя для БД, которая существует только во время работы приложения
     if(!db.open())
     {
         qDebug() << "НЕ удалось открыть БД";
@@ -186,10 +187,10 @@ bool MainWindow::removeTagContext(QString driverName)
 
 MainWindow::~MainWindow()
 {
-    /*Удаление файла БД*/
-    QFile dbFile("RunTime.db");
-    db.removeDatabase(db.connectionName());
-    dbFile.remove();
+//    /*Удаление файла БД*/
+//    QFile dbFile("RunTime.db");
+//    db.removeDatabase(db.connectionName());
+//    dbFile.remove();
     /////////////////////
     delete ui;
 }
